@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>美股收盘日报</title>
+    <meta
+      name="description"
+      content="中文美股收盘日报归档，支持查看最新日报和历史日期。"
+    >
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#latest" aria-label="查看最新日报">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span>
+            <span class="brand-kicker">US Market Close</span>
+            <strong>美股收盘日报</strong>
+          </span>
+        </a>
+        <div class="topbar-meta">
+          <span id="reportCount"></span>
+          <span id="latestDatePill" class="date-pill"></span>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar" aria-label="日报日期归档">
+          <div class="sidebar-header">
+            <span>日期归档</span>
+            <button id="latestButton" type="button" class="plain-button">最新</button>
+          </div>
+          <nav id="dateList" class="date-list"></nav>
+        </aside>
+
+        <main id="reportRoot" class="report-root" tabindex="-1"></main>
+      </div>
+    </div>
+
+    <script src="./data/reports.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>
