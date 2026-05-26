@@ -33,8 +33,30 @@ data/reports.js
 
 ## 下一步建议
 
-1. 把每天的自动化日报改成同时更新 `data/reports.js`。
-2. 部署到公开网址。
+1. 将仓库连接到 Netlify，让 Netlify 在每次 GitHub 更新后自动发布。
+2. 在 GitHub Secrets 中设置 `OPENAI_API_KEY`，让 `.github/workflows/daily-report.yml` 每天美东 18:00 生成新日报并提交到仓库。
 3. 后续增加搜索、股票筛选、板块热力图和重点股票追踪页。
 
-Deploy refresh1
+## 全自动更新
+
+全自动链路如下：
+
+```text
+GitHub Actions 定时运行
+→ OpenAI API 生成最新中文日报
+→ 更新 data/reports.js
+→ 自动提交到 GitHub
+→ Netlify 监听到提交并自动重新发布网站
+```
+
+GitHub 需要设置：
+
+- `Settings` → `Secrets and variables` → `Actions` → 新增 secret：`OPENAI_API_KEY`
+- `Settings` → `Actions` → `General` → Workflow permissions 选择 `Read and write permissions`
+
+Netlify 需要设置：
+
+- `Add new project` → `Import an existing project`
+- 选择 GitHub 仓库
+- Build command 留空
+- Publish directory 填 `.`
