@@ -1,0 +1,60 @@
+name: Generate daily market report
+
+on:
+  schedule:
+    # GitHub cron uses UTC. Running at both 22:05 and 23:05 UTC lets the
+    # guard below hit 6:00 PM New York time in both daylight and standard time.
+    - cron: "5 22,23 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check New York time
+        id: timecheck
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          ET_HOUR="$(TZ=America/New_York date +%H)"
+          if [ "$ET_HOUR" = "18" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate report and commit
+        if: steps.timecheck.outputs.run == 'true'
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
+        run: |
+          set -euo pipefail
+
+          git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" repo
+          cd repo
+
+          node scripts/generate-daily-report.mjs
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/reports.js
+
+          if git diff --cached --quiet; then
+            echo "No report changes to commit."
+            exit 0
+          fi
+
+          REPORT_DATE="$(node scripts/read-latest-report-date.mjs)"
+          git commit -m "Add market report ${REPORT_DATE}"
+          git push
